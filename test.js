@@ -125,7 +125,13 @@ Deno.test("states-fullpage.html", async () => {
 
   let csv = table_to_csv(table);
   Deno.writeTextFileSync("./testdata/generated/states-fullpage.csv", csv);
-  // assertEquals(csv, expected);
+  assertEquals(csv, expected);
+
+  csv = table_to_csv(table, {
+    includeheaders: false,
+  });
+  Deno.writeTextFileSync("./testdata/generated/states-fullpage-noheaders.csv", csv);
+  assertEquals(csv, expected.split("\n").slice(1).join("\n"));
 });
 
 Deno.test("dogbreeds.html", async () => {

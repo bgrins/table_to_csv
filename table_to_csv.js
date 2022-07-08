@@ -3,9 +3,10 @@ export function to_csv(arr) {
   arr.forEach((o, i) => {
     o.forEach((p, j) => {
       // Map DOM nodes to string
-      p = (typeof p == "string" ? p : p.textContent);
+      p = typeof p == "string" ? p : p.textContent;
       // Handle starting spaces, and escape newlines
-      p = p.replace(/^ +| +$/g,'')
+      p = p
+        .replace(/^ +| +$/g, "")
         .replaceAll("\r\n", "\\r\\n")
         .replaceAll("\n", "\\n");
       // Quote when necessary, and convert to duplicate double quotes in string
@@ -40,18 +41,42 @@ function childCells(row) {
 export function table_to_json(table, { includeheaders }) {
   var rows = [];
   var numHeaderRows = 0;
-  if (includeheaders) {
-    var thead = [...table.children].find((c) => c.tagName == "THEAD");
-    // Todo: handle special case of no thead but a first row containing only th's
-    if (thead) {
-      rows = rows.concat(...childRows(thead));
-      numHeaderRows = rows.length;
+  var tbody = [...table.children].find((c) => c.tagName == "TBODY") || table;
+  var tbodyRows = childRows(tbody);
+
+  var thead = [...table.children].find((c) => c.tagName == "THEAD");
+  if (thead) {
+    if (includeheaders) {
+      let theadRows = childRows(thead);
+      numHeaderRows = theadRows.length;
+      rows = rows.concat(theadRows);
+    }
+  } else {
+    // Handle special case of no thead but a first row containing only th's
+    let leadingHeaderRowsCount = 0;
+    for (let i = 0; i < tbodyRows.length; i++) {
+      let cells = childCells(tbodyRows[i]);
+      if (cells.length > 0 && cells.every((c) => c.tagName == "TH")) {
+        leadingHeaderRowsCount++;
+      } else {
+        break;
+      }
+    }
+
+    if (
+      leadingHeaderRowsCount > 0 &&
+      leadingHeaderRowsCount < tbodyRows.length
+    ) {
+      if (includeheaders) {
+        numHeaderRows = leadingHeaderRowsCount;
+        rows = rows.concat(tbodyRows.slice(0, leadingHeaderRowsCount));
+      }
+      // Even if we don't want to include headers we want to remove detected header rows
+      tbodyRows = tbodyRows.slice(leadingHeaderRowsCount);
     }
   }
 
-  var tbody = [...table.children].find((c) => c.tagName == "TBODY") || table;
-  console.log(tbody.tagName);
-  var rows = rows.concat(...childRows(tbody));
+  var rows = rows.concat(tbodyRows);
   let rowLengths = rows.map((r) => childCells(r).length);
   let maxRowLength = Math.max(...rowLengths.concat(0));
   let minRowLength = Math.min(...rowLengths.concat(0));
