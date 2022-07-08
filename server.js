@@ -1,5 +1,5 @@
-import { Application, Router } from "https://deno.land/x/oak@v10.1.0/mod.ts";
-import { oakCors } from "https://deno.land/x/cors/oakCors.ts";
+import { match as pathMatch } from "https://deno.land/x/path_to_regexp@v6.2.0/index.ts";
+import { serve } from "https://deno.land/std@0.147.0/http/server.ts";
 import table_to_csv_headless, {
   get_table_from_document,
 } from "./table_to_csv_headless.js";
@@ -36,23 +36,28 @@ async function fetchURLText(url) {
 
   return text;
 }
-const app = new Application();
-const router = new Router();
-router.get("/external/:url(.*)", async (ctx) => {
-  let url = ctx?.params?.url;
-  ctx.response.headers.set("content-type", "text/plain");
+
+const routes = new Map();
+routes.set("/external/:url(.*)", async function (request, { params }) {
+  let { url } = params;
   try {
     let text = await fetchURLText(url);
-    ctx.response.body = text;
+    return new Response(text, {
+      headers: {
+        "content-type": "text/plain",
+      },
+    });
   } catch (e) {
-    ctx.response.body = `Error fetching ${url}`;
+    return new Response(`Error fetching ${url}`, {
+      headers: {
+        "content-type": "text/plain",
+      },
+    });
   }
 });
-
-router.get("/table/:tableindex/:url(.*)", async (ctx) => {
-  let { url, tableindex } = ctx.params;
+routes.set("/table/:tableindex/:url(.*)", async function (request, { params }) {
+  let { tableindex, url } = params;
   let tableSelector = `table:nth-of-type(${parseInt(tableindex)})`;
-  ctx.response.headers.set("content-type", "text/plain");
   try {
     let text = await fetchURLText(url);
 
@@ -65,12 +70,44 @@ router.get("/table/:tableindex/:url(.*)", async (ctx) => {
     let csv = table_to_csv_headless(text, {
       tableSelector,
     });
-    ctx.response.body = csv;
+
+    return new Response(csv, {
+      headers: {
+        "content-type": "text/plain",
+      },
+    });
   } catch {
-    ctx.response.body = `Error fetching ${url} with ${tableSelector}`;
+    return new Response(`Error fetching ${url} with ${tableSelector}`, {
+      headers: {
+        "content-type": "text/plain",
+      },
+    });
   }
 });
 
-app.use(oakCors()); // Enable CORS for All Routes
-app.use(router.routes());
-await app.listen({ port: 8001 });
+const handler = async (request) => {
+  // Allow CORS for browser
+  if (request.method === "OPTIONS") {
+    return new Response("ok", {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "authorization, x-client-info, apikey",
+      },
+    });
+  }
+
+  let pathname = new URL(request.url).pathname;
+  for (let [path, route] of routes.entries()) {
+    let match = pathMatch(path)(pathname);
+    if (match) {
+      let returnValue = route(request, {
+        params: match.params,
+      });
+      return returnValue;
+    }
+  }
+
+  return new Response("Unknown path", { status: 404 });
+};
+
+await serve(handler, { port: 8001 });
