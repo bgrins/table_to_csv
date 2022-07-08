@@ -4,11 +4,7 @@ export function to_csv(arr) {
     o.forEach((p, j) => {
       // Map DOM nodes to string
       p = typeof p == "string" ? p : p.textContent;
-      // Handle starting spaces, and escape newlines
-      p = p
-        .replace(/^ +| +$/g, "")
-        .replaceAll("\r\n", "\\r\\n")
-        .replaceAll("\n", "\\n");
+      p = p.replaceAll("\r\n", "\\r\\n").replaceAll("\n", "\\n");
       // Quote when necessary, and convert to duplicate double quotes in string
       if (p.match(/,|"/)) {
         p = `"${p.replaceAll('"', '""')}"`;
@@ -158,7 +154,7 @@ export function table_to_json(
         [...titleSet.values()]
           .map((el) => {
             // Use innerText to avoid headers getting stuck together on the server when there's a <br /> tag and
-            // no whitespace.
+            // no whitespace, and to keep hidden content out.
             return limitwhitespace
               ? trimAndCollapseWhitespace(el.innerText)
               : el.innerText;
@@ -174,8 +170,10 @@ export function table_to_json(
   for (let [rowIndex, row] of records.entries()) {
     for (let [colIndex, col] of row.entries()) {
       if (!records[rowIndex][colIndex]) {
+        // This happens if you have a row that's longer than others
         console.error("Error: missing cell", rowIndex, colIndex);
         records[rowIndex][colIndex] = "";
+        col = "";
       }
       let colString = typeof col == "string" ? col : col.innerText;
       records[rowIndex][colIndex] = limitwhitespace
@@ -203,7 +201,6 @@ export default function table_to_csv(
   if (!table || !table.outerHTML) {
     throw new Error(`Not a valid table element`);
   }
-
   let json = table_to_json(table, {
     includeheaders,
     limitwhitespace,

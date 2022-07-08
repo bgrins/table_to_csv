@@ -38,9 +38,52 @@ Deno.test("basic", async () => {
   assertEquals(
     table_to_csv_headless(
       `<table><tr><td>1</td></tr><tr><td>2</td></tr></table>`,
-      verbose
+      {
+        verbose,
+      }
     ),
     "1\n2"
+  );
+});
+
+Deno.test("unbalanced table", async () => {
+  assertEquals(
+    table_to_csv_headless(
+      `<table>
+      <tr><td>1</td><td>2</td></tr>
+      <tr><td>1</td><td>2</td><td>3</td></tr>
+      </table>`,
+      {
+        verbose,
+      }
+    ),
+    "1,2,\n1,2,3"
+  );
+});
+
+Deno.test("trimming whitespace", async () => {
+  assertEquals(
+    table_to_csv_headless(
+      `<table>
+      <tr><td>1</td><td>2&nbsp;&nbsp;&nbsp;3</td></tr>
+      </table>`,
+      {
+        verbose,
+        limitwhitespace: false,
+      }
+    ),
+    "1,2   3"
+  );
+  assertEquals(
+    table_to_csv_headless(
+      `<table>
+      <tr><td>1</td><td>2&nbsp;&nbsp;&nbsp;3</td></tr>
+      </table>`,
+      {
+        verbose,
+      }
+    ),
+    "1,2 3"
   );
 });
 
@@ -76,7 +119,8 @@ Deno.test("selectors", async () => {
 
 Deno.test("headers", async () => {
   assertEquals(
-    table_to_csv_headless(`<table>
+    table_to_csv_headless(
+      `<table>
     <thead><tr><th colspan="2">The table header</th></tr></thead>
     <tbody><tr><td>The table body</td><td>with two columns</td></tr></tbody>
   </table>`,
@@ -88,7 +132,8 @@ Deno.test("headers", async () => {
     `The table body,with two columns`
   );
   assertEquals(
-    table_to_csv_headless(`<table>
+    table_to_csv_headless(
+      `<table>
     <thead><tr><th colspan="2">The table header</th></tr></thead>
     <tbody><tr><td>The table body</td><td>with two columns</td></tr></tbody>
   </table>`,

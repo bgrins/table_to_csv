@@ -8,9 +8,7 @@ import table_to_csv from "./table_to_csv.js";
  * @param {String} [options.tableSelector] - if input is a full document, the querySelector
  * @returns {Object}
  */
-export function get_table_from_document(input, options = {}) {
-  let tableSelector = options.tableSelector || "table";
-
+export function get_table_from_document(input, { tableSelector }) {
   let document = new DOMParser().parseFromString(input, "text/html");
   return document.querySelector(tableSelector);
 }
@@ -26,7 +24,9 @@ export function get_table_from_document(input, options = {}) {
  * @returns {String}
  */
 export default function table_to_csv_headless(input, options = {}) {
-  const table = get_table_from_document(input, options);
+  const table = get_table_from_document(input, {
+    tableSelector: options.tableSelector || "table",
+  });
   if (!table) {
     throw new Error(`No table matching selector: ${tableSelector}`);
   }
