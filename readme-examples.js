@@ -26,11 +26,11 @@ The table body,with two columns
 })();
 
 (async function () {
-  let resp = await fetch(
-    "https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States"
-  );
-  let text = await resp.text();
-  // let text = Deno.readTextFileSync("./testdata/states-fullpage.html");
+  // let resp = await fetch(
+  //   "https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States"
+  // );
+  // let text = await resp.text();
+  let text = Deno.readTextFileSync("./testdata/states-fullpage.html");
 
   console.log(
   table_to_csv_headless(text, {

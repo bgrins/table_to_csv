@@ -26,6 +26,10 @@ export function to_csv(arr) {
   return output;
 }
 
+function trimAndCollapseWhitespace(str) {
+  return str.trim().replace(/[\s\uFEFF\xA0]+/g, " ");
+}
+
 function childRows(tableContainer) {
   return [...tableContainer.children].filter((c) => {
     return c.tagName == "TR";
@@ -38,7 +42,10 @@ function childCells(row) {
   });
 }
 
-export function table_to_json(table, { includeheaders, verbose }) {
+export function table_to_json(
+  table,
+  { includeheaders, limitwhitespace, verbose }
+) {
   var rows = [];
   var numHeaderRows = 0;
   var tbody = [...table.children].find((c) => c.tagName == "TBODY") || table;
@@ -117,7 +124,7 @@ export function table_to_json(table, { includeheaders, verbose }) {
             currentCellIndex += 1;
           }
           if (currentCellIndex > maxRowLength) {
-            console.error(cell.textContent);
+            console.error(cell.innerText);
             throw new Error(
               "Too many cells (total colspan larger than cells) " +
                 i +
@@ -150,9 +157,11 @@ export function table_to_json(table, { includeheaders, verbose }) {
       colTitles.push(
         [...titleSet.values()]
           .map((el) => {
-            // Use innerText to avoid headers getting stuck together when there's a <br /> tag and
-            // no whitespace. Then trim & replace all remaining whitespace with individual spaces.
-            return el.innerText.trim().replace(/[\s\uFEFF\xA0]+/g, " ");
+            // Use innerText to avoid headers getting stuck together on the server when there's a <br /> tag and
+            // no whitespace.
+            return limitwhitespace
+              ? trimAndCollapseWhitespace(el.innerText)
+              : el.innerText;
           })
           .filter((text) => text != "")
           .join(" - ")
@@ -168,12 +177,10 @@ export function table_to_json(table, { includeheaders, verbose }) {
         console.error("Error: missing cell", rowIndex, colIndex);
         records[rowIndex][colIndex] = "";
       }
-      records[rowIndex][colIndex] = (
-        typeof col == "string" ? col : col.textContent
-      )
-        .trim()
-        .replaceAll("\r\n", "\\r\\n")
-        .replaceAll("\n", "\\n");
+      let colString = typeof col == "string" ? col : col.innerText;
+      records[rowIndex][colIndex] = limitwhitespace
+        ? trimAndCollapseWhitespace(colString)
+        : colString;
     }
   }
 
@@ -185,12 +192,13 @@ export function table_to_json(table, { includeheaders, verbose }) {
  * @param {Object} table
  * @param {Object} options
  * @param {Boolean} options.includeheaders - whether or not to include headers from the table
+ * @param {Boolean} options.limitwhitespace - whether or not to trim and collapse whitespace inside cells
  * @param {Boolean} options.verbose - whether or not to log
  * @returns {String}
  */
 export default function table_to_csv(
   table,
-  { includeheaders = true, verbose = false } = {}
+  { includeheaders = true, limitwhitespace = true, verbose = false } = {}
 ) {
   if (!table || !table.outerHTML) {
     throw new Error(`Not a valid table element`);
@@ -198,6 +206,7 @@ export default function table_to_csv(
 
   let json = table_to_json(table, {
     includeheaders,
+    limitwhitespace,
     verbose,
   });
   return to_csv(json);
