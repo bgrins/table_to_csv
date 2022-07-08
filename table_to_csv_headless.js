@@ -21,6 +21,7 @@ export function get_table_from_document(input, options = {}) {
  * @param {Object} options
  * @param {String} [options.tableSelector] - if input is a full document, the querySelector
  * @param {Boolean} options.includeheaders - whether or not to include headers from the table
+ * @param {Boolean} options.verbose - whether or not to log
  * @returns {String}
  */
 export default function table_to_csv_headless(input, options = {}) {

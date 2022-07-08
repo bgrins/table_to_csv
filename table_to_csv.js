@@ -38,7 +38,7 @@ function childCells(row) {
   });
 }
 
-export function table_to_json(table, { includeheaders }) {
+export function table_to_json(table, { includeheaders, verbose }) {
   var rows = [];
   var numHeaderRows = 0;
   var tbody = [...table.children].find((c) => c.tagName == "TBODY") || table;
@@ -80,9 +80,17 @@ export function table_to_json(table, { includeheaders }) {
   let rowLengths = rows.map((r) => childCells(r).length);
   let maxRowLength = Math.max(...rowLengths.concat(0));
   let minRowLength = Math.min(...rowLengths.concat(0));
-  console.log(
-    `\n  max row length: ${maxRowLength}\n  min row length: ${minRowLength}`
-  );
+
+  if (verbose) {
+    console.log(`
+  ----
+  includeheaders ${includeheaders} - ${numHeaderRows} header rows detected
+  total rows - ${rows.length}
+  max row length: ${maxRowLength}
+  min row length: ${minRowLength}
+  ----`);
+  }
+
   var records = rows.map((_) => new Array(maxRowLength).fill(null));
 
   for (var i = 0; i < rows.length; i++) {
@@ -173,15 +181,20 @@ export function table_to_json(table, { includeheaders }) {
  * @param {Object} table
  * @param {Object} options
  * @param {Boolean} options.includeheaders - whether or not to include headers from the table
+ * @param {Boolean} options.verbose - whether or not to log
  * @returns {String}
  */
-export default function table_to_csv(table, { includeheaders = true } = {}) {
+export default function table_to_csv(
+  table,
+  { includeheaders = true, verbose = false } = {}
+) {
   if (!table || !table.outerHTML) {
     throw new Error(`Not a valid table element`);
   }
 
   let json = table_to_json(table, {
     includeheaders,
+    verbose,
   });
   return to_csv(json);
 }
