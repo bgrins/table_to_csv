@@ -9,7 +9,7 @@ import table_to_csv from "./table_to_csv.js";
  * @param {Boolean} options.includeheaders - whether or not to include headers from the table
  * @returns {String}
  */
-export default function table_to_csv_server(input, options = {}) {
+export default function table_to_csv_headless(input, options = {}) {
   let tableSelector = options.tableSelector || "table";
 
   let document = new DOMParser().parseFromString(input, "text/html");
