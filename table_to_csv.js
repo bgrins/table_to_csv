@@ -143,6 +143,13 @@ export function table_to_json(table, { includeheaders }) {
   return records;
 }
 
+/**
+ * @description Given a DOM table element, return the CSV
+ * @param {Object} table
+ * @param {Object} options
+ * @param {Boolean} options.includeheaders - whether or not to include headers from the table
+ * @returns {String}
+ */
 export default function table_to_csv(table, { includeheaders = true } = {}) {
   if (!table || !table.outerHTML) {
     throw new Error(`Not a valid table element`);

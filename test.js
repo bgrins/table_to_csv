@@ -1,4 +1,7 @@
-import { assertEquals } from "https://deno.land/std@0.137.0/testing/asserts.ts";
+import {
+  assertEquals,
+  assert,
+} from "https://deno.land/std@0.137.0/testing/asserts.ts";
 import { DOMParser } from "https://unpkg.com/linkedom/worker";
 import table_to_csv_server from "./table_to_csv_server.js";
 import table_to_csv, { to_csv } from "./table_to_csv.js";
@@ -35,6 +38,36 @@ Deno.test("basic", async () => {
     ),
     "1\n2"
   );
+});
+
+Deno.test("selectors", async () => {
+  let htmlString = `<html><body>
+  <table id="one"><tr><td>table 1 - row 1</td></tr><tr><td>table 1 - row 2</td></tr></table>
+  <table id="two"><tr><td>table 2 - row 1</td></tr><tr><td>table 2 - row 2</td></tr></table>
+  </body></html>`;
+  assertEquals(
+    table_to_csv_server(htmlString, {
+      tableSelector: "#one",
+    }),
+    "table 1 - row 1\ntable 1 - row 2"
+  );
+  assertEquals(
+    table_to_csv_server(htmlString, {
+      tableSelector: "#two",
+    }),
+    "table 2 - row 1\ntable 2 - row 2"
+  );
+  try {
+    table_to_csv_server(htmlString, {
+      tableSelector: "#invalid",
+    });
+    assert(false, "invalid selector didn't throw");
+  } catch (e) {
+    assert(true, "invalid selector threw");
+  }
+});
+
+Deno.test("headers", async () => {
   assertEquals(
     table_to_csv_server(
       `<table>
