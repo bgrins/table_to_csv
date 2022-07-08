@@ -91,7 +91,6 @@ const handler = async (request) => {
     return new Response("ok", {
       headers: {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "authorization, x-client-info, apikey",
       },
     });
   }
