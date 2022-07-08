@@ -149,7 +149,11 @@ export function table_to_json(table, { includeheaders, verbose }) {
       }
       colTitles.push(
         [...titleSet.values()]
-          .map((el) => el.textContent.trim())
+          .map((el) => {
+            // Use innerText to avoid headers getting stuck together when there's a <br /> tag and
+            // no whitespace. Then trim & replace all remaining whitespace with individual spaces.
+            return el.innerText.trim().replace(/[\s\uFEFF\xA0]+/g, " ");
+          })
           .filter((text) => text != "")
           .join(" - ")
       );
