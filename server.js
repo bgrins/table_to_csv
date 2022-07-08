@@ -8,6 +8,9 @@ import table_to_csv_headless, {
 // http://localhost:8001/table/2/https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States
 
 const DEBUG = false;
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+};
 
 function isValidHttpUrl(string) {
   let url;
@@ -44,12 +47,14 @@ routes.set("/external/:url(.*)", async function (request, { params }) {
     let text = await fetchURLText(url);
     return new Response(text, {
       headers: {
+        ...CORS_HEADERS,
         "content-type": "text/plain",
       },
     });
   } catch (e) {
     return new Response(`Error fetching ${url}`, {
       headers: {
+        ...CORS_HEADERS,
         "content-type": "text/plain",
       },
     });
@@ -73,12 +78,14 @@ routes.set("/table/:tableindex/:url(.*)", async function (request, { params }) {
 
     return new Response(csv, {
       headers: {
+        ...CORS_HEADERS,
         "content-type": "text/plain",
       },
     });
   } catch {
     return new Response(`Error fetching ${url} with ${tableSelector}`, {
       headers: {
+        ...CORS_HEADERS,
         "content-type": "text/plain",
       },
     });
@@ -89,9 +96,7 @@ const handler = async (request) => {
   // Allow CORS for browser
   if (request.method === "OPTIONS") {
     return new Response("ok", {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
+      headers: CORS_HEADERS,
     });
   }
 
