@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>table_to_csv demo page</title>
-    <link rel="stylesheet" href="./water.css" />
+    <link rel="stylesheet" href="./static/water.css" />
     <style>
       body {
         max-width: 100%;
@@ -32,7 +32,7 @@
     </style>
     <script type="module">
       // import table_to_csv from "https://deno.land/x/table_to_csv/table_to_csv.js";
-      import table_to_csv from "../table_to_csv.js";
+      import table_to_csv from "./table_to_csv.js";
 
       window.addEventListener("DOMContentLoaded", () => {
         for (let container of [...document.querySelectorAll(".preview")]) {
