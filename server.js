@@ -7,7 +7,7 @@ import table_to_csv_headless, {
 // deno run -A server.js
 // http://localhost:8001/table/2/https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States
 
-const DEBUG = true;
+const DEBUG = false;
 
 function isValidHttpUrl(string) {
   let url;
@@ -61,7 +61,6 @@ router.get("/table/:tableindex/:url(.*)", async (ctx) => {
         tableSelector,
       });
       console.log(table.outerHTML);
-      Deno.writeTextFileSync("./FETCHED_TABLE.html", table.outerHTML);
     }
     let csv = table_to_csv_headless(text, {
       tableSelector,
