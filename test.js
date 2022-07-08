@@ -14,7 +14,7 @@ function getTestData(filename) {
     "text/html"
   );
   let table = document.querySelector("table");
-  let expected = document.querySelector("template").textContent.trim();
+  let expected = document.querySelector("template")?.textContent?.trim();
 
   return { table, expected };
 }
@@ -108,6 +108,24 @@ Deno.test("headers", async () => {
     `The table header,The table header
 The table body,with two columns`
   );
+});
+
+Deno.test("states-fullpage.html", async () => {
+  // Saved from https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States.
+  // Asserting against the HTML fulled from Firefox after loading the page (i.e. template in states.html)
+  // In this case the markup coming from the server doesn't have a thead (explicitly includes a tbody),
+  // so the easy heuristic for detecting and collapsing headers is missing.
+  let { expected } = getTestData("./testdata/states.html");
+
+  let document = new DOMParser().parseFromString(
+    Deno.readTextFileSync("./testdata/states-fullpage.html"),
+    "text/html"
+  );
+  let table = document.querySelector("table:nth-of-type(2)");
+
+  let csv = table_to_csv(table);
+  Deno.writeTextFileSync("./testdata/generated/states-fullpage.csv", csv);
+  // assertEquals(csv, expected);
 });
 
 Deno.test("dogbreeds.html", async () => {

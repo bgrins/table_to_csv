@@ -1,9 +1,13 @@
 import { Application, Router } from "https://deno.land/x/oak@v10.1.0/mod.ts";
 import { oakCors } from "https://deno.land/x/cors/oakCors.ts";
-import table_to_csv_headless from "./table_to_csv_headless.js";
-// deno run -A server.js
+import table_to_csv_headless, {
+  get_table_from_document,
+} from "./table_to_csv_headless.js";
 
+// deno run -A server.js
 // http://localhost:8001/table/2/https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States
+
+const DEBUG = true;
 
 function isValidHttpUrl(string) {
   let url;
@@ -51,6 +55,14 @@ router.get("/table/:tableindex/:url(.*)", async (ctx) => {
   ctx.response.headers.set("content-type", "text/plain");
   try {
     let text = await fetchURLText(url);
+
+    if (DEBUG) {
+      let table = get_table_from_document(text, {
+        tableSelector,
+      });
+      console.log(table.outerHTML);
+      Deno.writeTextFileSync("./FETCHED_TABLE.html", table.outerHTML);
+    }
     let csv = table_to_csv_headless(text, {
       tableSelector,
     });
