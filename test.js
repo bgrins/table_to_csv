@@ -2,7 +2,8 @@ import {
   assertEquals,
   assert,
 } from "https://deno.land/std@0.137.0/testing/asserts.ts";
-import { DOMParser } from "https://unpkg.com/linkedom/worker";
+
+import { DOMParser } from "https://esm.sh/linkedom/worker";
 import table_to_csv_headless from "./table_to_csv_headless.js";
 import table_to_csv, { to_csv } from "./table_to_csv.js";
 
@@ -130,7 +131,10 @@ Deno.test("states-fullpage.html", async () => {
   csv = table_to_csv(table, {
     includeheaders: false,
   });
-  Deno.writeTextFileSync("./testdata/generated/states-fullpage-noheaders.csv", csv);
+  Deno.writeTextFileSync(
+    "./testdata/generated/states-fullpage-noheaders.csv",
+    csv
+  );
   assertEquals(csv, expected.split("\n").slice(1).join("\n"));
 });
 

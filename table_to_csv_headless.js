@@ -1,4 +1,4 @@
-import { DOMParser } from "https://unpkg.com/linkedom/worker";
+import { DOMParser } from "https://esm.sh/linkedom/worker";
 import table_to_csv from "./table_to_csv.js";
 
 /**
